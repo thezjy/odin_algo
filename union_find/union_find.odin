@@ -4,20 +4,23 @@ import "core:os"
 import "core:fmt"
 import "core:strings"
 import "core:strconv"
+import "core:time"
 
 UF :: struct {
-	id:    [dynamic]int,
-	size:  [dynamic]int,
-	count: int,
+	id:     [dynamic]u64,
+	size:   [dynamic]u64,
+	height: [dynamic]u64,
+	count:  u64,
 }
 
-uf_init :: proc(uf: ^UF, n: int) {
-	uf.id = make([dynamic]int, n)
-	uf.size = make([dynamic]int, n)
+uf_init :: proc(uf: ^UF, n: u64) {
+	uf.id = make([dynamic]u64, n)
+	uf.size = make([dynamic]u64, n)
 
 	for i in 0 ..< n {
 		uf.id[i] = i
 		uf.size[i] = 1
+		uf.height[i] = 1
 	}
 
 	uf.count = n
@@ -28,19 +31,28 @@ uf_destroy :: proc(uf: ^UF) {
 	delete(uf.size)
 }
 
-uf_connected :: proc(uf: ^UF, p, q: int) -> bool {
+uf_connected :: proc(uf: ^UF, p, q: u64) -> bool {
 	return uf_find(uf, p) == uf_find(uf, q)
 }
 
-uf_find :: proc(uf: ^UF, p: int) -> int {
-	p := p
+uf_find :: proc(uf: ^UF, p: u64) -> (root: u64) {
+	root = p
 
-	for p != uf.id[p] do p = uf.id[p]
+	for root != uf.id[root] do root = uf.id[root]
 
-	return p
+	// path compression
+	// cur_id := p
+	// next_id := uf.id[cur_id]
+	// for cur_id != next_id {
+	// 	uf.id[cur_id] = root
+	// 	cur_id = next_id
+	// 	next_id = uf.id[cur_id]
+	// }
+
+	return
 }
 
-uf_connect :: proc(uf: ^UF, p, q: int) {
+uf_connect :: proc(uf: ^UF, p, q: u64) {
 	p_root := uf_find(uf, p)
 	q_root := uf_find(uf, q)
 
@@ -57,34 +69,49 @@ uf_connect :: proc(uf: ^UF, p, q: int) {
 	uf.count -= 1
 }
 
+Pair :: struct {
+	p: u64,
+	q: u64,
+}
 
-main :: proc() {
-	bytes, ok := os.read_entire_file(os.args[1])
+uf_get_input :: proc() -> (n: u64, pairs: [dynamic]Pair) {
+	bytes, _ := os.read_entire_file(os.args[1])
 	defer delete(bytes)
 
 	str := string(bytes)
 
+
 	lines := strings.split(str, "\n")
 
-	n, _ := strconv.parse_int(lines[0])
+	n, _ = strconv.parse_u64(lines[0])
+	pairs = make([dynamic]Pair, 0, n)
+
+	for line in lines[1:(len(lines) - 2)] {
+		parts := strings.split(line, " ")
+		p, _ := strconv.parse_u64(parts[0])
+		q, _ := strconv.parse_u64(parts[1])
+		append(&pairs, Pair{p, q})
+	}
+
+	return
+}
+
+
+main :: proc() {
+	n, pairs := uf_get_input()
+
+	start_time := time.tick_now()
 
 	uf: UF
 	uf_init(&uf, n)
 	defer uf_destroy(&uf)
 
-	// last line is empty
-	for line in lines[1:(len(lines) - 2)] {
-		parts := strings.split(line, " ")
-		p, _ := strconv.parse_int(parts[0])
-		q, _ := strconv.parse_int(parts[1])
-
-		if uf_connected(&uf, p, q) do continue
-
-		uf_connect(&uf, p, q)
-		// fmt.printf("%v - %v\n", p, q)
+	for pair in pairs {
+		uf_connect(&uf, pair.p, pair.q)
 	}
 
-	fmt.printf("%v components\n", uf.count)
+	fmt.printf("total components: %d\n", uf.count)
 
 
+	fmt.printf("time used: %v\n", time.tick_since(start_time))
 }
