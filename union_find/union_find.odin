@@ -7,20 +7,21 @@ import "core:strconv"
 import "core:time"
 
 UF :: struct {
-	id:     [dynamic]u64,
-	size:   [dynamic]u64,
-	height: [dynamic]u64,
-	count:  u64,
+	id:    [dynamic]u64,
+	// size:   [dynamic]u64,
+	// height: [dynamic]u64,
+	count: u64,
 }
 
 uf_init :: proc(uf: ^UF, n: u64) {
 	uf.id = make([dynamic]u64, n)
-	uf.size = make([dynamic]u64, n)
+	// uf.size = make([dynamic]u64, n)
+	// uf.height = make([dynamic]u64, n)
 
 	for i in 0 ..< n {
 		uf.id[i] = i
-		uf.size[i] = 1
-		uf.height[i] = 1
+		// uf.size[i] = 1
+		// uf.height[i] = 1
 	}
 
 	uf.count = n
@@ -28,7 +29,7 @@ uf_init :: proc(uf: ^UF, n: u64) {
 
 uf_destroy :: proc(uf: ^UF) {
 	delete(uf.id)
-	delete(uf.size)
+	// delete(uf.size)
 }
 
 uf_connected :: proc(uf: ^UF, p, q: u64) -> bool {
@@ -41,13 +42,13 @@ uf_find :: proc(uf: ^UF, p: u64) -> (root: u64) {
 	for root != uf.id[root] do root = uf.id[root]
 
 	// path compression
-	// cur_id := p
-	// next_id := uf.id[cur_id]
-	// for cur_id != next_id {
-	// 	uf.id[cur_id] = root
-	// 	cur_id = next_id
-	// 	next_id = uf.id[cur_id]
-	// }
+	cur_id := p
+	next_id := uf.id[cur_id]
+	for cur_id != next_id {
+		uf.id[cur_id] = root
+		cur_id = next_id
+		next_id = uf.id[cur_id]
+	}
 
 	return
 }
@@ -58,13 +59,30 @@ uf_connect :: proc(uf: ^UF, p, q: u64) {
 
 	if p_root == q_root do return
 
-	if uf.size[p_root] < uf.size[q_root] {
-		uf.id[p_root] = q_root
-		uf.size[q_root] += uf.size[p_root]
-	} else {
-		uf.id[q_root] = p_root
-		uf.size[p_root] += uf.size[q_root]
-	}
+	uf.id[p_root] = q_root
+
+	// weighted by size
+	// if uf.size[p_root] < uf.size[q_root] {
+	// 	uf.id[p_root] = q_root
+	// 	uf.size[q_root] += uf.size[p_root]
+	// } else {
+	// 	uf.id[q_root] = p_root
+	// 	uf.size[p_root] += uf.size[q_root]
+	// }
+
+
+	// weighted by height
+	// switch {
+	// case uf.height[p_root] < uf.height[q_root]:
+	// 	uf.id[p_root] = q_root
+
+	// case uf.height[p_root] > uf.height[q_root]:
+	// 	uf.id[q_root] = p_root
+
+	// case:
+	// 	uf.id[p_root] = q_root
+	// 	uf.height[q_root] += 1
+	// }
 
 	uf.count -= 1
 }
@@ -79,7 +97,6 @@ uf_get_input :: proc() -> (n: u64, pairs: [dynamic]Pair) {
 	defer delete(bytes)
 
 	str := string(bytes)
-
 
 	lines := strings.split(str, "\n")
 
