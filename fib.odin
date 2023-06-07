@@ -1,7 +1,8 @@
-package fib
+package algo
 
 import "core:time"
 import "core:fmt"
+import "core:testing"
 
 fib1 :: proc(n: u64) -> u64 {
 	switch n {
@@ -30,7 +31,8 @@ fib2 :: proc(n: u64) -> u64 {
 }
 
 
-main :: proc() {
+@(test)
+test_fib :: proc(t: ^testing.T) {
 	n: u64 = 45
 
 	fib1_start_time := time.tick_now()

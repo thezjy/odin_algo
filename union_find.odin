@@ -1,10 +1,11 @@
-package union_find
+package algo
 
 import "core:os"
 import "core:fmt"
 import "core:strings"
 import "core:strconv"
 import "core:time"
+import "core:testing"
 
 UF :: struct {
 	id:    [dynamic]u64,
@@ -114,7 +115,8 @@ uf_get_input :: proc() -> (n: u64, pairs: [dynamic]Pair) {
 }
 
 
-main :: proc() {
+@(test)
+test_union_find :: proc(t: ^testing.T) {
 	n, pairs := uf_get_input()
 
 	start_time := time.tick_now()
