@@ -2,3 +2,6 @@ algs4-data
 *.bin
 ols.json
 **/*.exe
+**/*.dSYM
+**/*.out
+.vscode

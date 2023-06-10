@@ -1,0 +1,8 @@
+a
+b
+core
+d
+e
+fmt
+g
+f
