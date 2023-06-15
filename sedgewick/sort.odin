@@ -212,5 +212,4 @@ test :: proc() {
 main :: proc() {
 	// test()
 	compare_sort()
-
 }
